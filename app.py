@@ -118,3 +118,37 @@ if st.button("Calculate My Tax"):
         st.info("You're in the 'Zero-Tax' zone! Use that extra cash to grow your dreams.")
     
     st.caption("Note: This is an estimate based on the Nigeria Tax Act 2025. Always consult with a certified tax professional for official filing.")
+
+# --- TABS FOR ORGANIZED CONTENT ---
+tab1, tab2, tab3 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Resources"])
+
+with tab1:
+    # [Paste all your previous calculator code here]
+    pass 
+
+with tab2:
+    st.header("Frequently Asked Questions")
+    
+    with st.expander("Is the ₦800,000 threshold for everyone?"):
+        st.write("Yes! Whether you are a civil servant, a shop owner, or a freelancer, the first ₦800,000 you earn in a year is now taxed at 0%.")
+        
+    with st.expander("How does Rent Relief work?"):
+        st.write("You can deduct 20% of the rent you actually paid from your taxable income, provided it doesn't exceed ₦500,000. You should keep your rent receipts handy for the tax man!")
+
+    with st.expander("What happened to the old tax laws?"):
+        st.write("The 2025 Act repealed the Personal Income Tax Act, Company Income Tax Act, and several others to create one 'Unified' rulebook.")
+
+with tab3:
+    st.header("Official Documents")
+    st.info("Knowledge is power. Download the full 2025 Tax Act to stay informed.")
+    
+    # Direct Link to the PDF
+    st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
+    
+    st.markdown("""
+    **Key Chapters to Note:**
+    - **Chapter 2:** Taxation of Individuals & Companies
+    - **Chapter 6:** Value Added Tax (VAT)
+    - **Chapter 8:** Tax Incentives & Exemptions
+    """)
+    
