@@ -36,7 +36,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-    """, unsafe_allow_html=True)
 
 # --- HEADER ---
 st.title("🇳🇬 NaijaTax 2026 Calculator")
@@ -178,4 +177,5 @@ with tab3:
     - **Chapter 8:** Tax Incentives & Exemptions
     """)
     
+
 
