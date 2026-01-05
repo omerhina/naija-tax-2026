@@ -4,12 +4,38 @@ import streamlit as st
 st.set_page_config(page_title="NaijaTax 2026", page_icon="🇳🇬", layout="centered")
 
 # --- CUSTOM CSS FOR NIGERIAN THEME ---
+
+    # --- UPDATED CUSTOM CSS (Theme Aware) ---
 st.markdown("""
     <style>
-    .main { background-color: #f9fff9; }
-    .stButton>button { background-color: #008751; color: white; width: 100%; border-radius: 10px; height: 3em; font-weight: bold; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; }
+    /* Main background remains clean */
+    .main { background-color: transparent; }
+    
+    /* Buttons stay Nigerian Green but work in both modes */
+    .stButton>button { 
+        background-color: #008751; 
+        color: white; 
+        width: 100%; 
+        border-radius: 10px; 
+        border: none;
+    }
+    
+    /* The Metric Box Fix: Use system variables for text and background */
+    div[data-testid="stMetric"] {
+        background-color: var(--secondary-background-color);
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 10px;
+        color: var(--text-color);
+    }
+    
+    /* Ensuring the value text is visible in Dark Mode */
+    div[data-testid="stMetricValue"] > div {
+        color: var(--text-color) !important;
+    }
     </style>
+    """, unsafe_allow_html=True)
+
     """, unsafe_allow_html=True)
 
 # --- HEADER ---
@@ -152,3 +178,4 @@ with tab3:
     - **Chapter 8:** Tax Incentives & Exemptions
     """)
     
+
