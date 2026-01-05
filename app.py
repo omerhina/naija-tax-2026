@@ -1,42 +1,75 @@
 import streamlit as st
 
-# Page Config
-st.set_page_config(page_title="NaijaTax 2026", page_icon="🇳🇬")
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="NaijaTax 2026", page_icon="🇳🇬", layout="centered")
 
+# --- CUSTOM CSS FOR NIGERIAN THEME ---
+st.markdown("""
+    <style>
+    .main { background-color: #f9fff9; }
+    .stButton>button { background-color: #008751; color: white; width: 100%; border-radius: 10px; height: 3em; font-weight: bold; }
+    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- HEADER ---
 st.title("🇳🇬 NaijaTax 2026 Calculator")
-st.markdown("### Helping you figure out your 'Piggy Bank' contribution.")
+st.markdown("#### *Making sense of the Nigeria Tax Act 2025*")
 
-# Sidebar for Category
-category = st.sidebar.selectbox(
-    "Who are you?",
-    ["Civil Servant / Employee", "Freelancer / Sole Trader", "Limited Company (Ltd)"]
-)
+# --- HOW TO USE SECTION ---
+with st.expander("❓ New here? See How to Use this App"):
+    st.markdown("""
+    1. **Pick Your Lane:** Are you a Civil Servant, Freelancer, or Limited Company?
+    2. **Be Honest with the Numbers:** Enter your total annual income (Gross).
+    3. **Claim Your Discounts:** - **Employees:** Input your rent to claim the 20% relief.
+       - **Freelancers/Companies:** Input your business expenses to lower your taxable profit.
+    4. **Magic Button:** Hit 'Calculate' to see your annual and monthly contribution to the 'Big Piggy Bank'.
+    """)
 
 st.divider()
 
-# Input Section
-income = st.number_input("What is your Total Annual Income (Gross)?", min_value=0, step=50000)
+# --- SIDEBAR INPUTS ---
+st.sidebar.header("User Profile")
+category = st.sidebar.selectbox(
+    "Tax Category",
+    ["Civil Servant / Employee", "Freelancer / Sole Trader", "Limited Company (Ltd)"]
+)
 
-if "Company" not in category:
-    st.info("Fun fact: Did you know if you earn ₦800k or less, you pay ₦0 tax? 🎉")
-    rent = st.number_input("How much Rent do you pay annually?", min_value=0, step=10000)
-    pension_opt = st.checkbox("Do you contribute to Pension (8%) and NHF (2.5%)?", value=True)
-else:
-    expenses = st.number_input("What are your total Business Expenses?", min_value=0, step=10000)
+# --- MAIN INPUT SECTION ---
+col_in1, col_in2 = st.columns(2)
 
-# Calculation Engine
-def calculate_individual_tax(gross, rent_paid, has_pension):
-    # Deductions
-    pension_deduction = (gross * 0.105) if has_pension else 0
-    rent_relief = min(rent_paid * 0.20, 500000)
-    taxable_income = max(0, gross - pension_deduction - rent_relief)
+with col_in1:
+    income = st.number_input("Total Annual Income (₦)", min_value=0, step=100000, help="Total money earned before any deductions.")
+
+with col_in2:
+    if category == "Civil Servant / Employee":
+        rent = st.number_input("Annual Rent Paid (₦)", min_value=0, step=50000, help="You can claim 20% of this (max ₦500k) as tax relief.")
+        pension_opt = st.checkbox("Deduct Pension (8%) & NHF (2.5%)", value=True)
+        bus_expenses = 0
+    elif category == "Freelancer / Sole Trader":
+        bus_expenses = st.number_input("Business Expenses (₦)", min_value=0, step=50000, help="Data, fuel, software, gear, etc.")
+        rent = st.number_input("Personal Rent (₦)", min_value=0, step=50000)
+        pension_opt = st.checkbox("Voluntary Pension/NHF?", value=False)
+    else: # Limited Company
+        bus_expenses = st.number_input("Total Operating Expenses (₦)", min_value=0, step=100000)
+        rent = 0
+        pension_opt = False
+
+# --- EXPENSE GUIDES ---
+if category != "Civil Servant / Employee":
+    with st.expander("💡 What can I add as Business Expenses?"):
+        if category == "Freelancer / Sole Trader":
+            st.write("- **Data & Tech:** Internet, Starlink, Software (Adobe, Zoom, etc.)\n- **Power:** Fuel for generator/solar maintenance\n- **Gear:** Laptop repairs, camera equipment\n- **Learning:** Courses & Certifications")
+        else:
+            st.write("- **Operations:** Staff Salaries, Pensions (10% Co. contribution), Office Rent\n- **Growth:** Marketing, Ad Spend, Professional Fees (Legal/Accounting)\n- **Maintenance:** Vehicle repairs, Office utilities")
+
+# --- CALCULATION LOGIC ---
+def get_tax_2026(taxable_income):
+    if taxable_income <= 0: return 0
     
-    # Progressive Bands
-    tax = 0
-    remaining = taxable_income
-    
+    # 2026 Progressive Bands
     bands = [
-        (800000, 0),        # First 800k @ 0%
+        (800000, 0.00),     # First 800k @ 0%
         (2200000, 0.15),    # Next 2.2m @ 15%
         (9000000, 0.18),    # Next 9m @ 18%
         (13000000, 0.21),   # Next 13m @ 21%
@@ -44,38 +77,44 @@ def calculate_individual_tax(gross, rent_paid, has_pension):
         (float('inf'), 0.25) # Above 50m @ 25%
     ]
     
+    total_tax = 0
+    remaining = taxable_income
     for limit, rate in bands:
         if remaining <= 0: break
         chunk = min(remaining, limit)
-        tax += chunk * rate
+        total_tax += chunk * rate
         remaining -= chunk
-        
-    return tax
+    return total_tax
 
-# Logic Execution
+# --- EXECUTE ---
 if st.button("Calculate My Tax"):
-    if "Company" in category:
+    if category == "Limited Company (Ltd)":
         if income <= 50000000:
             annual_tax = 0
-            st.success("Your business is small! You pay 0% Company Income Tax under the new law.")
+            st.success("🎉 Small Business Relief! Since your turnover is under ₦50m, you pay 0% CIT.")
         else:
-            profit = income - expenses
+            profit = max(0, income - bus_expenses)
+            # CIT (30%) + Development Levy (4%)
             annual_tax = (profit * 0.30) + (profit * 0.04)
     else:
-        annual_tax = calculate_individual_tax(income, rent, pension_opt)
+        # Personal Income Tax Logic
+        net_after_bus_exp = income - bus_expenses
+        pension_deduction = (net_after_bus_exp * 0.105) if pension_opt else 0
+        rent_relief = min(rent * 0.20, 500000)
+        
+        final_taxable_income = max(0, net_after_bus_exp - pension_deduction - rent_relief)
+        annual_tax = get_tax_2026(final_taxable_income)
 
     monthly_tax = annual_tax / 12
 
-    # Results Display
-    col1, col2 = st.columns(2)
-    col1.metric("Annual Tax", f"₦{annual_tax:,.2f}")
-    col2.metric("Monthly Tax", f"₦{monthly_tax:,.2f}")
+    # DISPLAY RESULTS
+    st.divider()
+    res1, res2 = st.columns(2)
+    res1.metric("Annual Tax Amount", f"₦{annual_tax:,.2f}")
+    res2.metric("Monthly Tax Amount", f"₦{monthly_tax:,.2f}")
+
+    if annual_tax == 0 and income > 0:
+        st.balloons()
+        st.info("You're in the 'Zero-Tax' zone! Use that extra cash to grow your dreams.")
     
-    st.balloons()
-    
-    st.markdown("---")
-    st.write("**Why this amount?**")
-    if annual_tax == 0:
-        st.write("You fall under the exemption threshold! Keep that money and grow!")
-    else:
-        st.write(f"After your rent relief and deductions, your taxable income was processed through the 2026 progressive bands. Want to see how to pay this to the FIRS/LIRS?")
+    st.caption("Note: This is an estimate based on the Nigeria Tax Act 2025. Always consult with a certified tax professional for official filing.")
