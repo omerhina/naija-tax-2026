@@ -22,7 +22,7 @@ st.markdown("""
 st.title("🇳🇬 NaijaTax 2026")
 st.markdown("##### *Your guide to the 2025 Nigeria Tax Act rules.*")
 
-tab1, tab2, tab3, tab4 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Important Dates","🦍 Tax Jungle Runner" ])
+tab1, tab2, tab3, tab4 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Important Dates","🎮 Game" ])
 
 with tab1:
     category = st.selectbox(
@@ -162,79 +162,98 @@ with tab3:
     st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
     st.caption("Official document from the Tax Appeal Tribunal.")
 
-# --- TAB 4: THE TAX CHALLENGE ---
+# --- TAB 4: TAX FLIP GAME (REVERSED) ---
 with tab4:
-    st.header("🦍 Jungle Runner")
-    st.write("Help the Gorilla stay compliant! **Click** or press **Space** to jump over Audit Gavels.")
+    st.header("🦅 Tax Flap: Leftward Flight")
+    st.write("The bird faces left, so we fly left! Tap or press **Space** to dodge the incoming audits.")
 
-    game_html = """
-    <div id="game-container" style="width: 100%; height: 200px; border-bottom: 3px solid #008751; position: relative; overflow: hidden; background: transparent; border-radius: 10px;">
-        <div id="player" style="width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; font-size: 40px; text-align: center; transition: bottom 0.3s ease-out;">🦍</div>
-        
-        <div id="obstacle" style="width: 40px; height: 40px; position: absolute; bottom: 0; right: -50px; font-size: 30px; text-align: center;">⚖️</div>
-        
-        <div id="score" style="position: absolute; top: 10px; right: 20px; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #008751; font-size: 20px;">Score: 0</div>
+    if 'player_name' not in st.session_state:
+        player_name = st.text_input("Enter pilot name:", placeholder="TaxNinja")
+        if st.button("Ready for Takeoff"):
+            if player_name:
+                st.session_state.player_name = player_name
+                st.rerun()
+        st.stop()
+
+    game_code = """
+    <div id="game-box" style="width: 100%; max-width: 400px; height: 500px; margin: auto; position: relative; overflow: hidden; background: #70c5ce; border: 4px solid #008751; border-radius: 15px;">
+        <canvas id="flappyCanvas" width="400" height="500"></canvas>
+        <div id="ui-score" style="position: absolute; top: 10px; right: 10px; font-family: Arial; font-size: 24px; color: white; text-shadow: 2px 2px #000;">Score: 0</div>
     </div>
 
     <script>
-        const player = document.getElementById("player");
-        const obstacle = document.getElementById("obstacle");
-        const scoreElement = document.getElementById("score");
-        let score = 0;
-        let isJumping = false;
+        const canvas = document.getElementById('flappyCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreUI = document.getElementById('ui-score');
 
-        function jump() {
-            if (!isJumping) {
-                isJumping = true;
-                player.style.bottom = "100px";
-                setTimeout(() => { 
-                    player.style.bottom = "0"; 
-                    isJumping = false;
-                }, 400);
-            }
+        let birdY = 250; let velocity = 0; let gravity = 0.4; let jump = -7;
+        let score = 0; let gameActive = true;
+        let pipes = []; let frame = 0;
+
+        function drawBird() {
+            ctx.font = "30px Arial";
+            ctx.fillText("🦅", 320, birdY); // Positioned on the right, facing left
         }
 
-        // Listen for Spacebar and Clicks
-        document.addEventListener("keydown", (e) => { if (e.code === "Space") jump(); });
-        document.getElementById("game-container").addEventListener("mousedown", jump);
+        function createPipe() {
+            let gap = 160;
+            let topHeight = Math.random() * (canvas.height - gap - 100) + 50;
+            // Pipes start at x = -50 (off-screen left)
+            pipes.push({ x: -50, top: topHeight, bottom: topHeight + gap, passed: false });
+        }
 
-        let gameLoop = setInterval(() => {
-            let playerBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
-            let obstacleLeft = parseInt(window.getComputedStyle(obstacle).getPropertyValue("left"));
-
-            // Move obstacle from right to left
-            let currentRight = parseInt(obstacle.style.right) || -50;
+        function update() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (currentRight > 650) { // Reset obstacle
-                obstacle.style.right = "-50px";
-                score++;
-                scoreElement.innerHTML = "Score: " + score;
-                
-                // Randomly change the obstacle icon for variety
-                const icons = ["⚖️", "🚨", "📑", "⚠️"];
-                obstacle.innerHTML = icons[Math.floor(Math.random() * icons.length)];
-            } else {
-                obstacle.style.right = (currentRight + 6) + "px"; // Speed
-            }
+            velocity += gravity;
+            birdY += velocity;
+            drawBird();
 
-            // Collision Detection (Adjusted for Gorilla size)
-            if (obstacleLeft < 90 && obstacleLeft > 50 && playerBottom <= 35) {
-                alert("OUT! You missed a filing deadline. Final Score: " + score);
-                score = 0;
-                scoreElement.innerHTML = "Score: 0";
-                obstacle.style.right = "-50px";
-            }
-        }, 20);
+            if (frame % 100 === 0) createPipe();
+            
+            pipes.forEach((p, i) => {
+                p.x += 3; // Pipes move RIGHT
+                ctx.fillStyle = "#d9534f"; // Audit red
+                ctx.fillRect(p.x, 0, 50, p.top);
+                ctx.fillRect(p.x, p.bottom, 50, canvas.height);
+
+                // Collision Detection (Bird is at x=320)
+                if (p.x > 280 && p.x < 340 && (birdY < p.top || birdY > p.bottom)) {
+                    gameActive = false;
+                    alert("Audit Caught You! Final Score: " + score);
+                }
+
+                // Scoring (When pipe passes the bird's x position)
+                if (!p.passed && p.x > 340) {
+                    score++;
+                    p.passed = true;
+                    scoreUI.innerHTML = "Score: " + score;
+                }
+            });
+
+            // Remove off-screen pipes
+            pipes = pipes.filter(p => p.x < 450);
+
+            if (birdY > canvas.height || birdY < 0) gameActive = false;
+            frame++;
+            requestAnimationFrame(update);
+        }
+
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') velocity = jump; });
+        canvas.addEventListener('mousedown', () => { velocity = jump; });
+        update();
     </script>
     """
     
-    st.components.v1.html(game_html, height=250)
+    st.components.v1.html(game_code, height=550)
+
+    # Leaderboard Logic
+    st.divider()
+    st.subheader("🏆 Tax Flip Leaderboard")
+    if 'leaderboard' not in st.session_state:
+        st.session_state.leaderboard = []
     
-    st.markdown("""
-    **Controls:**
-    * **Jump:** Click the game area or press the Spacebar.
-    * **Goal:** Avoid the legal gavels to keep your business running!
-    """)
-        
-
-
+    # (Optional: Add logic to update st.session_state.leaderboard from JS)
+    st.info("Current Session Best: " + st.session_state.player_name)
+    
