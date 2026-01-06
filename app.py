@@ -144,10 +144,6 @@ with tab2:
     if not found: st.warning("No matching FAQ found.")
 
 with tab3:
-    st.header("Official Documents")
-    st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
-
-with tab5: 
     st.header("📅 Important Tax Dates")
     st.info("Mark your calendars! Missing these dates triggers penalties starting 2026.")
     
@@ -160,7 +156,8 @@ with tab5:
     | **Companies (CIT)** | 6 months after the financial year-end |
     | **Petroleum Royalties** | 14th of the following month |
     """)
-    
 
-
-
+    st.divider()
+    st.header("📚 Official Resources")
+    st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
+    st.caption("Official document from the Tax Appeal Tribunal.")
