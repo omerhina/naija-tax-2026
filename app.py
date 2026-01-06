@@ -163,97 +163,76 @@ with tab3:
     st.caption("Official document from the Tax Appeal Tribunal.")
 
 # --- TAB 4: THE TAX CHALLENGE ---
-with tab4:
-    st.header("🎯 The NaijaTax 2026 Challenge")
-    
-    # 1. NICKNAME REGISTRATION
-    if 'user_name' not in st.session_state:
-        st.info("Enter a nickname to join the leaderboard!")
-        name_input = st.text_input("Your Nickname:", placeholder="e.g. TaxWizard234")
-        if st.button("Start Game"):
-            if name_input:
-                st.session_state.user_name = name_input
-                st.rerun()
-            else:
-                st.warning("Oga/Madam, please enter a name!")
-        st.stop() # Stops the rest of the tab from loading until name is set
+    with tab4:
+    st.header("🦍 Tax Jungle Runner")
+    st.write("Help the Gorilla stay compliant! **Click** or press **Space** to jump over Audit Gavels.")
 
-    # 2. LEADERBOARD LOGIC (Simulated with Cache)
-    @st.cache_data
-    def get_leaderboard():
-        return [] # Returns a list that persists across sessions on the server
+    game_html = """
+    <div id="game-container" style="width: 100%; height: 200px; border-bottom: 3px solid #008751; position: relative; overflow: hidden; background: transparent; border-radius: 10px;">
+        <div id="player" style="width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; font-size: 40px; text-align: center; transition: bottom 0.3s ease-out;">🦍</div>
+        
+        <div id="obstacle" style="width: 40px; height: 40px; position: absolute; bottom: 0; right: -50px; font-size: 30px; text-align: center;">⚖️</div>
+        
+        <div id="score" style="position: absolute; top: 10px; right: 20px; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #008751; font-size: 20px;">Score: 0</div>
+    </div>
 
-    leaderboard = get_leaderboard()
+    <script>
+        const player = document.getElementById("player");
+        const obstacle = document.getElementById("obstacle");
+        const scoreElement = document.getElementById("score");
+        let score = 0;
+        let isJumping = false;
 
-    # 3. QUIZ QUESTIONS (Updated with 2026 Penalties)
-    questions = [
-        {
-            "q": "Under the 2025 Act, what is the penalty for a Small Business failing to file returns?",
-            "options": ["₦10,000", "₦100,000 first month + ₦50k/month", "Just a warning"],
-            "correct": "₦100,000 first month + ₦50k/month",
-            "fact": "Correct! Section 1012 makes it expensive to 'forget' your filings. 💸"
-        },
-        {
-            "q": "What is the penalty for a Virtual Asset Provider (Crypto) who defaults on tax?",
-            "options": ["₦1 Million", "₦10 Million first month", "50% of profit"],
-            "correct": "₦10 Million first month",
-            "fact": "Correct! The Act is extremely strict on digital assets. 🪙"
-        },
-        {
-            "q": "If you assault a Tax Officer, what is the maximum jail term under the new law?",
-            "options": ["2 years", "10 years", "6 months"],
-            "correct": "10 years",
-            "fact": "True! Physical assault or using weapons against tax officials now carries up to 10 years in prison. 👮‍♂️"
+        function jump() {
+            if (!isJumping) {
+                isJumping = true;
+                player.style.bottom = "100px";
+                setTimeout(() => { 
+                    player.style.bottom = "0"; 
+                    isJumping = false;
+                }, 400);
+            }
         }
-    ]
 
-    # Initialize game variables
-    if 'quiz_score' not in st.session_state: st.session_state.quiz_score = 0
-    if 'current_q' not in st.session_state: st.session_state.current_q = 0
+        // Listen for Spacebar and Clicks
+        document.addEventListener("keydown", (e) => { if (e.code === "Space") jump(); });
+        document.getElementById("game-container").addEventListener("mousedown", jump);
 
-    if st.session_state.current_q < len(questions):
-        q = questions[st.session_state.current_q]
-        st.subheader(f"Question {st.session_state.current_q + 1} of {len(questions)}")
-        st.progress((st.session_state.current_q) / len(questions))
-        st.markdown(f"### {q['q']}")
-        
-        user_choice = st.radio("Pick one:", q['options'], key=f"quiz_{st.session_state.current_q}")
-        
-        if st.button("Submit"):
-            if user_choice == q['correct']:
-                st.success(f"✅ {q['fact']}")
-                st.session_state.quiz_score += 1
-            else:
-                st.error(f"❌ Wrong! {q['fact']}")
+        let gameLoop = setInterval(() => {
+            let playerBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
+            let obstacleLeft = parseInt(window.getComputedStyle(obstacle).getPropertyValue("left"));
+
+            // Move obstacle from right to left
+            let currentRight = parseInt(obstacle.style.right) || -50;
             
-            st.session_state.current_q += 1
-            st.button("Next Question →")
+            if (currentRight > 650) { // Reset obstacle
+                obstacle.style.right = "-50px";
+                score++;
+                scoreElement.innerHTML = "Score: " + score;
+                
+                // Randomly change the obstacle icon for variety
+                const icons = ["⚖️", "🚨", "📑", "⚠️"];
+                obstacle.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+            } else {
+                obstacle.style.right = (currentRight + 6) + "px"; // Speed
+            }
+
+            // Collision Detection (Adjusted for Gorilla size)
+            if (obstacleLeft < 90 && obstacleLeft > 50 && playerBottom <= 35) {
+                alert("OUT! You missed a filing deadline. Final Score: " + score);
+                score = 0;
+                scoreElement.innerHTML = "Score: 0";
+                obstacle.style.right = "-50px";
+            }
+        }, 20);
+    </script>
+    """
     
-    else:
-        # 4. FINAL SCORE & LEADERBOARD SUBMISSION
-        final_score = st.session_state.quiz_score
-        st.balloons()
-        st.subheader(f"Game Over, {st.session_state.user_name}!")
-        st.write(f"Your Tax IQ Score: **{final_score}/{len(questions)}**")
+    st.components.v1.html(game_html, height=250)
+    
+    st.markdown("""
+    **Controls:**
+    * **Jump:** Click the game area or press the Spacebar.
+    * **Goal:** Avoid the legal gavels to keep your business running!
+    """)
         
-        # Save to leaderboard
-        if st.button("Save to Leaderboard"):
-            leaderboard.append({"Name": st.session_state.user_name, "Score": final_score})
-            leaderboard.sort(key=lambda x: x['Score'], reverse=True)
-            st.success("Score saved!")
-
-        # Display Top 5
-        st.divider()
-        st.subheader("🏆 Global Top 5")
-        if leaderboard:
-            for i, entry in enumerate(leaderboard[:5]):
-                st.write(f"{i+1}. **{entry['Name']}** — {entry['Score']} pts")
-        else:
-            st.write("No scores yet. Be the first!")
-
-        if st.button("Reset Game"):
-            st.session_state.quiz_score = 0
-            st.session_state.current_q = 0
-            st.rerun()
-            
-
