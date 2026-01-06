@@ -123,9 +123,35 @@ with tab1:
 # --- FAQ & RESOURCES ---
 with tab2:
     st.header("Frequently Asked Questions")
+    
+    search_faq = st.text_input("🔍 Search FAQs", placeholder="e.g. Rent, Crypto, Small Business")
+# (You can then use a simple loop to filter the expanders based on the search_faq string)
+    
     with st.expander("Is the ₦800k threshold for everyone?"):
-        st.write("Yes, the first 800k of any individual's income is taxed at 0%.")
+        st.write("Yes! Whether you are a civil servant, a shop owner, or a freelancer, the first ₦800,000 you earn in a year is now taxed at 0%. This provides instant relief to low-income earners.")
+
+    with st.expander("What happened to the old CRA (Consolidated Relief Allowance)?"):
+        st.write("The 2025 Act repealed the old CRA blanket allowance. It has been replaced by more targeted reliefs, most notably the **Rent Relief**, which is 20% of your annual rent (capped at ₦500,000).")
+
+    with st.expander("Does my Small Business really pay 0% tax?"):
+        st.write("If your annual turnover is ₦50 million or less, your Company Income Tax (CIT) rate is 0%. However, you are still required to file your tax returns annually to remain compliant and keep your Tax ID (TIN) active.")
+
+    with st.expander("What is the new 'Development Levy' for companies?"):
+        st.write("For companies larger than the 'Small' category, a unified 4% Development Levy replaces several older taxes (like Education Tax and the Police Trust Fund levy). It is calculated on your assessable profits.")
+
+    with st.expander("Is Crypto or Digital Income taxable in Nigeria?"):
+        st.write("Yes. Section 4 of the new Act explicitly includes gains from digital and virtual assets (like Cryptocurrency, NFTs, and digital awards) as part of your taxable income.")
+
+    with st.expander("How long do I have to get a tax refund?"):
+        st.write("The new law speeds things up! Tax refunds must now be processed within 90 days (or just 30 days for VAT claims), provided you have proper documentation.")
+
+    with st.expander("What is the 'WENR' rule for expenses?"):
+        st.write("For an expense to be deductible, it must be **W**holly, **E**xclusively, **N**ecessarily, and **R**easonably incurred for your business. Personal expenses like family groceries or school fees do not count.")
+
+    with st.expander("Do I need a TIN to open a business bank account?"):
+        st.write("Absolutely. The 2025 Act makes the Tax Identification Number (TIN) mandatory for all financial operations. No TIN means no corporate banking.")
 
 with tab3:
     st.header("Official Documents")
     st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
+
