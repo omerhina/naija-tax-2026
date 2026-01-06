@@ -3,46 +3,136 @@ import streamlit as st
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NaijaTax 2026", page_icon="🇳🇬", layout="centered")
 
-# --- THEME-AWARE CSS (Fixes Dark Mode Visibility) ---
+# --- THEME-AWARE CSS ---
 st.markdown("""
     <style>
     .main { background-color: transparent; }
     .stButton>button { 
-        background-color: #008751; 
-        color: white; 
-        width: 100%; 
-        border-radius: 10px; 
-        font-weight: bold;
-        border: none;
+        background-color: #008751; color: white; width: 100%; border-radius: 10px; font-weight: bold; border: none;
     }
-    /* Metric boxes that adapt to Light/Dark mode */
     div[data-testid="stMetric"] {
         background-color: var(--secondary-background-color);
         border: 1px solid var(--border-color);
-        padding: 20px;
-        border-radius: 12px;
+        padding: 20px; border-radius: 12px;
     }
-    /* Force metric text to follow theme colors */
-    div[data-testid="stMetricValue"] > div {
-        color: var(--text-color) !important;
-    }
+    div[data-testid="stMetricValue"] > div { color: var(--text-color) !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- APP HEADER ---
+# --- HEADER ---
 st.title("🇳🇬 NaijaTax 2026")
-st.markdown("##### *Unified Tax Calculator for the 2025 Nigeria Tax Act*")
+st.markdown("##### *Your guide to the 2025 Nigeria Tax Act rules.*")
 
-# --- TABS FOR NAVIGATION ---
 tab1, tab2, tab3 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Resources"])
 
 with tab1:
-    # 1. CATEGORY SELECTOR (Now on the Main Page)
+    # 1. CATEGORY SELECTOR
     category = st.selectbox(
         "Who are you calculating for?",
         ["Civil Servant / Employee", "Freelancer / Sole Trader", "Limited Company (Ltd)"],
-        index=0
+        help="The Tax Act treats individuals and companies differently. Pick your legal status!"
     )
+
+    st.divider()
+
+    # 2. INPUT SECTION
+    col_in1, col_in2 = st.columns(2)
+
+    with col_in1:
+        income = st.number_input(
+            "Total Annual Gross Income (₦)", 
+            min_value=0, step=100000,
+            help="Your total earnings for the year before ANY deductions or expenses."
+        )
+
+    with col_in2:
+        if category == "Civil Servant / Employee":
+            rent = st.number_input(
+                "Annual Rent Paid (₦)", 
+                min_value=0, step=50000, 
+                help="You can deduct 20% of your rent (up to ₦500k) from your taxable income."
+            )
+            pension_opt = st.checkbox(
+                "Deduct Pension & NHF?", 
+                value=True,
+                help="Check this if you contribute to the 8% Pension and 2.5% Housing fund."
+            )
+            bus_expenses = 0
+        elif category == "Freelancer / Sole Trader":
+            bus_expenses = st.number_input(
+                "Business Expenses (₦)", 
+                min_value=0, step=50000,
+                help="Enter costs like data, fuel, and gear. See the guide below for a full list!"
+            )
+            rent = st.number_input("Personal Rent (₦)", min_value=0, step=50000, help="Even freelancers get the 20% Rent Relief!")
+            pension_opt = st.checkbox("Voluntary Pension?", value=False)
+        else: # Limited Company
+            bus_expenses = st.number_input(
+                "Operating Expenses (₦)", 
+                min_value=0, step=100000,
+                help="Salaries, rent, utilities, and marketing. These reduce your company's taxable profit."
+            )
+            rent = 0
+            pension_opt = False
+
+    # 3. BUSINESS EXPENSE GUIDE (New Section)
+    if category != "Civil Servant / Employee":
+        with st.expander("📂 What can I count as Business Expenses?"):
+            st.markdown("""
+            Under the **WENR** rule (Wholly, Exclusively, Necessarily, and Reasonably), you can deduct:
+            * **Operations:** Office rent, utilities (electricity/water), and security.
+            * **Personnel:** Staff salaries and your 10% company pension contributions.
+            * **Tech & Digital:** Data subscriptions, software, and website hosting.
+            * **Marketing:** Social media ads, billboards, and branding costs.
+            * **Finance:** Interest on business loans and professional fees (Accountants/Lawyers).
+            * **Logistics:** Fuel for company vehicles or generators and equipment repairs.
+            """)
+
+    # 4. CALCULATION LOGIC
+    def get_tax_2026(taxable):
+        if taxable <= 800000: return 0
+        bands = [(800000, 0.0), (2200000, 0.15), (9000000, 0.18), (13000000, 0.21), (25000000, 0.23), (float('inf'), 0.25)]
+        tax, remaining = 0, taxable
+        for limit, rate in bands:
+            if remaining <= 0: break
+            chunk = min(remaining, limit)
+            tax += chunk * rate
+            remaining -= chunk
+        return tax
+
+    if st.button("Calculate My Contribution"):
+        if category == "Limited Company (Ltd)":
+            if income <= 50000000:
+                annual_tax = 0
+                st.success("Small Business Exemption! Your Company Tax is ₦0.00.")
+            else:
+                profit = max(0, income - bus_expenses)
+                annual_tax = (profit * 0.34) # 30% CIT + 4% Dev Levy
+        else:
+            net = income - bus_expenses
+            pension = (net * 0.105) if pension_opt else 0
+            relief = min(rent * 0.20, 500000)
+            taxable_income = max(0, net - pension - relief)
+            annual_tax = get_tax_2026(taxable_income)
+
+        st.divider()
+        r1, r2 = st.columns(2)
+        r1.metric("Annual Tax", f"₦{annual_tax:,.2f}")
+        r2.metric("Monthly Tax", f"₦{annual_tax/12:,.2f}")
+
+with tab2:
+    st.header("Frequently Asked Questions")
+    faqs = {
+        "Why is there a 0% tax bracket?": "To protect low-income earners. If you earn ₦800k or less, you keep every kobo.",
+        "Can I deduct my car fuel?": "Only if the car is used for business purposes. Personal school runs don't count!",
+        "What is the Rent Relief?": "It's a new personal relief that lets you deduct 20% of your rent from your taxable income, up to ₦500,000."
+    }
+    for q, a in faqs.items():
+        with st.expander(q): st.write(a)
+
+with tab3:
+    st.header("Official Documents")
+    st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
 
     st.divider()
 
@@ -132,3 +222,4 @@ with tab3:
     st.write("Stay compliant by reviewing the official Gazette signed into law.")
     st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
     st.caption("Document hosted by the Tax Appeal Tribunal (TAT).")
+
