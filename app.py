@@ -161,3 +161,98 @@ with tab3:
     st.header("📚 Official Resources")
     st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
     st.caption("Official document from the Tax Appeal Tribunal.")
+
+# --- TAB 4: THE TAX CHALLENGE ---
+with tab4:
+    st.header("🎯 The NaijaTax 2026 Challenge")
+    
+    # 1. NICKNAME REGISTRATION
+    if 'user_name' not in st.session_state:
+        st.info("Enter a nickname to join the leaderboard!")
+        name_input = st.text_input("Your Nickname:", placeholder="e.g. TaxWizard234")
+        if st.button("Start Game"):
+            if name_input:
+                st.session_state.user_name = name_input
+                st.rerun()
+            else:
+                st.warning("Oga/Madam, please enter a name!")
+        st.stop() # Stops the rest of the tab from loading until name is set
+
+    # 2. LEADERBOARD LOGIC (Simulated with Cache)
+    @st.cache_data
+    def get_leaderboard():
+        return [] # Returns a list that persists across sessions on the server
+
+    leaderboard = get_leaderboard()
+
+    # 3. QUIZ QUESTIONS (Updated with 2026 Penalties)
+    questions = [
+        {
+            "q": "Under the 2025 Act, what is the penalty for a Small Business failing to file returns?",
+            "options": ["₦10,000", "₦100,000 first month + ₦50k/month", "Just a warning"],
+            "correct": "₦100,000 first month + ₦50k/month",
+            "fact": "Correct! Section 1012 makes it expensive to 'forget' your filings. 💸"
+        },
+        {
+            "q": "What is the penalty for a Virtual Asset Provider (Crypto) who defaults on tax?",
+            "options": ["₦1 Million", "₦10 Million first month", "50% of profit"],
+            "correct": "₦10 Million first month",
+            "fact": "Correct! The Act is extremely strict on digital assets. 🪙"
+        },
+        {
+            "q": "If you assault a Tax Officer, what is the maximum jail term under the new law?",
+            "options": ["2 years", "10 years", "6 months"],
+            "correct": "10 years",
+            "fact": "True! Physical assault or using weapons against tax officials now carries up to 10 years in prison. 👮‍♂️"
+        }
+    ]
+
+    # Initialize game variables
+    if 'quiz_score' not in st.session_state: st.session_state.quiz_score = 0
+    if 'current_q' not in st.session_state: st.session_state.current_q = 0
+
+    if st.session_state.current_q < len(questions):
+        q = questions[st.session_state.current_q]
+        st.subheader(f"Question {st.session_state.current_q + 1} of {len(questions)}")
+        st.progress((st.session_state.current_q) / len(questions))
+        st.markdown(f"### {q['q']}")
+        
+        user_choice = st.radio("Pick one:", q['options'], key=f"quiz_{st.session_state.current_q}")
+        
+        if st.button("Submit"):
+            if user_choice == q['correct']:
+                st.success(f"✅ {q['fact']}")
+                st.session_state.quiz_score += 1
+            else:
+                st.error(f"❌ Wrong! {q['fact']}")
+            
+            st.session_state.current_q += 1
+            st.button("Next Question →")
+    
+    else:
+        # 4. FINAL SCORE & LEADERBOARD SUBMISSION
+        final_score = st.session_state.quiz_score
+        st.balloons()
+        st.subheader(f"Game Over, {st.session_state.user_name}!")
+        st.write(f"Your Tax IQ Score: **{final_score}/{len(questions)}**")
+        
+        # Save to leaderboard
+        if st.button("Save to Leaderboard"):
+            leaderboard.append({"Name": st.session_state.user_name, "Score": final_score})
+            leaderboard.sort(key=lambda x: x['Score'], reverse=True)
+            st.success("Score saved!")
+
+        # Display Top 5
+        st.divider()
+        st.subheader("🏆 Global Top 5")
+        if leaderboard:
+            for i, entry in enumerate(leaderboard[:5]):
+                st.write(f"{i+1}. **{entry['Name']}** — {entry['Score']} pts")
+        else:
+            st.write("No scores yet. Be the first!")
+
+        if st.button("Reset Game"):
+            st.session_state.quiz_score = 0
+            st.session_state.current_q = 0
+            st.rerun()
+            
