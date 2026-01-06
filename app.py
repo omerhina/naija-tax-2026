@@ -147,7 +147,7 @@ with tab3:
     st.header("Official Documents")
     st.link_button("📂 Download Nigeria Tax Act 2025 (PDF)", "https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf")
 
-with tab4: 
+with tab5: 
     st.header("📅 Important Tax Dates")
     st.info("Mark your calendars! Missing these dates triggers penalties starting 2026.")
     
@@ -161,5 +161,6 @@ with tab4:
     | **Petroleum Royalties** | 14th of the following month |
     """)
     
+
 
 
