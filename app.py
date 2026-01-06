@@ -163,8 +163,8 @@ with tab3:
     st.caption("Official document from the Tax Appeal Tribunal.")
 
 # --- TAB 4: THE TAX CHALLENGE ---
-    with tab4:
-    st.header("🦍 Tax Jungle Runner")
+with tab4:
+    st.header("🦍 Jungle Runner")
     st.write("Help the Gorilla stay compliant! **Click** or press **Space** to jump over Audit Gavels.")
 
     game_html = """
@@ -236,4 +236,5 @@ with tab3:
     * **Goal:** Avoid the legal gavels to keep your business running!
     """)
         
+
 
