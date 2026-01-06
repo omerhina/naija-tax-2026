@@ -22,7 +22,7 @@ st.markdown("""
 st.title("🇳🇬 NaijaTax 2026")
 st.markdown("##### *Your guide to the 2025 Nigeria Tax Act rules.*")
 
-tab1, tab2, tab3, tab4 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Important Dates","🎯 Tax Challenge" ])
+tab1, tab2, tab3, tab4 = st.tabs(["🧮 Calculator", "📑 FAQ", "📚 Important Dates","🦍 Tax Jungle Runner" ])
 
 with tab1:
     category = st.selectbox(
@@ -236,3 +236,4 @@ with tab3:
     * **Goal:** Avoid the legal gavels to keep your business running!
     """)
         
+
